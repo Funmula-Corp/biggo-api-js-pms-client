@@ -1,0 +1,45 @@
+{
+  "name": "biggo-api-js-pms-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "ts-node test.ts --esm",
+    "clean": "tsc --build --clean",
+    "prepublishOnly": "npm run clean && tsc"
+  },
+  "files": [
+    "**/*.d.ts",
+    "**/*.d.ts.map",
+    "**/*.js",
+    "**/*.js.map",
+    "!node_modules"
+  ],
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "./lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Funmula-Corp/biggo-api-js-pms-client.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "author": "Funmula Corp.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Funmula-Corp/biggo-api-js-pms-client/issues"
+  },
+  "homepage": "https://github.com/Funmula-Corp/biggo-api-js-pms-client#readme",
+  "dependencies": {
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.2",
+    "ts-node": "^10.9.1"
+  }
+}
