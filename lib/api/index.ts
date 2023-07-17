@@ -1,69 +1,102 @@
 import axios from "axios";
-import fsp from 'fs/promises';
 import fs from 'fs'
-import type { BaseRequestParams, TGroupListItem, TPlatformListItem, TReportHistoryDetail, TReportHistoryListItem, TReportHistoryListOption, TTokenResponse } from "./type";
+import type {
+  BaseRequestParams, TGroup, TPlatform, /*TReportDetail,*/ TReportListItem,
+  TReportListOption, TTokenResponse, TDownloadFileOptions
+} from "./type";
 import path from "path";
+import { BigGoAuthError, BigGoError } from "../error";
 export class BiggoPMSAPI {
   #clientID: string;
   #clientSecret: string;
   #accessToken: string = '';
   #tokenType: 'Bearer' | string = 'Bearer';
+  /**
+   * in seconds
+   */
   #expiresAt: number = 0;
   #baseURL: string = 'https://api.biggo.com/api/v1/pms';
+
   constructor({ clientID, clientSecret }: { clientID: string, clientSecret: string }) {
     this.#clientID = clientID;
     this.#clientSecret = clientSecret;
   }
-  public setClientID(clientID: string) {
+
+  public setClientID(clientID: string): this {
     this.#clientID = clientID;
     return this;
   }
-  public setClientSecret(clientSecret: string) {
+  public setClientSecret(clientSecret: string): this {
     this.#clientSecret = clientSecret;
     return this;
   }
+  public setToken(token: string, expiresAt: Date, tokenType: 'Bearer' | string = 'Bearer'): this {
+    this.#accessToken = token;
+    this.#tokenType = tokenType;
+    this.#expiresAt = expiresAt.getTime() / 1000;
+    return this;
+  }
+
+  public async getToken() {
+    if (!this.#accessToken || this.isTokenExpired()) {
+      await this.#renewToken();
+    }
+    return this.#accessToken;
+  }
 
   async #renewToken() {
-    const basicAuth: string = Buffer.from(`${this.#clientID}:${this.#clientSecret}`).toString('base64');
+    this.#accessToken = '';
+    this.#tokenType = 'Bearer';
+    this.#expiresAt = 0;
+    let basicAuthHeader: string = '';
+    if (typeof Buffer !== 'undefined')
+      basicAuthHeader = `Basic ${Buffer.from(`${this.#clientID}:${this.#clientSecret}`).toString('base64')}`;
+    else
+      basicAuthHeader = `Basic ${btoa(`${this.#clientID}:${this.#clientSecret}`)}`;
     try {
       const response = await axios.post<TTokenResponse>('https://api.biggo.com/auth/v1/token', {
         grant_type: 'client_credentials'
       }, {
         headers: {
-          'Authorization': `Basic ${basicAuth}`,
+          'Authorization': basicAuthHeader,
           'Content-Type': 'application/x-www-form-urlencoded'
         }
+      }).catch(err => {
+        if (typeof err.response.data === 'object' && 'error' in err.response.data) {
+          return err.response
+        }
+        throw new BigGoAuthError(`${err.message}`);
       })
+
       if ('error' in response.data) {
-        console.log(response.data)
-        throw new Error(`${response.data.error.message}, code:${response.data.error.code}`)
+        throw new BigGoAuthError(`${response.data.error.message}`, response.data.error.code);
       }
       const { access_token, token_type, expires_in } = response.data;
       this.#accessToken = access_token;
       this.#tokenType = token_type === 'bearer' ? 'Bearer' : token_type;
-      this.#expiresAt = Date.now() + expires_in * 1000 - 30 * 1000;
+      this.#expiresAt = Date.now() / 1000 + expires_in - 30;
     }
     catch (err) {
       if (err instanceof Error)
-        throw new Error(`BigGo Auth Error: ${err.message}`);
+        throw new BigGoAuthError(`${err.message}`, err.cause);
       else
-        throw new Error(`BigGo Auth Error: ${err}`)
+        throw new BigGoAuthError(`${err}`);
     }
   }
-  private isTokenExpired(): boolean {
-    return Date.now() >= this.#expiresAt;
+  /**
+   * Check the token is expired.
+   */
+  public isTokenExpired(): boolean {
+    return Date.now() / 1000 >= this.#expiresAt;
   }
 
   private async request(prams: BaseRequestParams) {
-    if (!this.#accessToken || this.isTokenExpired()) {
-      await this.#renewToken();
-    }
     return axios({
       baseURL: this.#baseURL,
       url: prams.path,
       method: prams.method,
       headers: {
-        'Authorization': `${this.#tokenType} ${this.#accessToken}`,
+        'Authorization': `${this.#tokenType} ${await this.getToken()}`,
         ...prams.extraHeaders
       },
       params: prams.extraParams,
@@ -71,20 +104,21 @@ export class BiggoPMSAPI {
       data: prams.body,
     })
       .then((res) => {
-        if (res.data.error_code || !res.data.result) throw `${res.data.error || res.data.message}`
-        if (res.statusText !== 'OK') throw 'Unknown Error'
+        if (res.data.error_code || res.data.result === false)
+          throw new BigGoError(`${res.data.error || res.data.message}`, res.data.error_code);
         return res;
       })
       .catch(err => {
         if (err instanceof Error)
-          throw new Error(`BigGo PMS Error: ${err.message}`);
+          throw new BigGoError(`${err.message}`, err.cause);
         else
-          throw new Error(`BigGo PMS Error: ${err}`)
+          throw new BigGoError(`${err}`);
       })
-
   }
-
-  public async getPlatformList(): Promise<TPlatformListItem[]> {
+  /**
+   * Get this user's platform list.
+   */
+  public async getPlatformList(): Promise<TPlatform[]> {
     const { data } = await this.request({
       path: '/platform',
       method: 'GET'
@@ -96,11 +130,13 @@ export class BiggoPMSAPI {
         status: platform.status,
         userList: platform.userid_list,
         emailList: platform.email_list
-      } satisfies TPlatformListItem;
+      } satisfies TPlatform;
     });
   }
-
-  public async getGroupList(platformID: string): Promise<TGroupListItem[]> {
+  /**
+   * Get group list of the platform.
+   */
+  public async getGroupList(platformID: string): Promise<TGroup[]> {
     const { data } = await this.request({
       path: '/group',
       method: 'GET',
@@ -118,11 +154,13 @@ export class BiggoPMSAPI {
         status: group.status,
         exportCount: group.export_count,
         sampleCount: group.sample_count
-      } satisfies TGroupListItem
+      } satisfies TGroup
     });
   }
-
-  public async getReportHistoryList(platformID: string, options?: TReportHistoryListOption): Promise<TReportHistoryListItem[]> {
+  /**
+   * Get history report list of the platform.
+   */
+  public async getReportList(platformID: string, options?: TReportListOption): Promise<TReportListItem[]> {
     const { data } = await this.request({
       path: '/export',
       method: 'GET',
@@ -130,11 +168,11 @@ export class BiggoPMSAPI {
         pms_platformid: platformID,
         size: options?.size ?? 5000,
         in_sort: options?.sort ?? 'desc',
-        in_form: options?.startPosition ?? 0,
+        in_form: options?.listStartIndex ?? 0,
         in_opt: options?.filter ? {
-          pms_groupid: options.filter.groupID,
-          start: options.filter.startDate ? `${options.filter.startDate.getFullYear()}-${options.filter.startDate.getMonth()}-${options.filter.startDate.getDay()}` : undefined,
-          end: options.filter.endDate ? `${options.filter.endDate.getFullYear()}-${options.filter.endDate.getMonth()}-${options.filter.endDate.getDay()}` : undefined,
+          pms_groupid: options.filter.groupID?.join(','),
+          start: options.filter.startDate ? `${options.filter.startDate.getUTCFullYear()}-${options.filter.startDate.getUTCMonth() + 1}-${options.filter.startDate.getUTCDate()}` : undefined,
+          end: options.filter.endDate ? `${options.filter.endDate.getUTCFullYear()}-${options.filter.endDate.getUTCMonth() + 1}-${options.filter.endDate.getUTCDate()}` : undefined,
         } : undefined,
       }
     })
@@ -146,55 +184,73 @@ export class BiggoPMSAPI {
         groupName: report.group_name,
         district: report.district,
         sampleSize: report.sample_size
-      } satisfies TReportHistoryListItem
+      } satisfies TReportListItem
     })
   }
 
-  public async getReportHistory(platformID: string, reportID: string): Promise<TReportHistoryDetail> {
-    const { data } = await this.request({
-      path: `/export-json/${reportID}`,
-      method: 'GET',
-      extraParams: {
-        pms_platformid: platformID
-      }
-    })
-    return {
-      groupID: data.data.pms_groupid,
-      groupName: data.data.group_name,
-      sampleSize: data.data.sample_size,
-      district: data.data.district,
-      createTime: data.data.createtime,
-      json_data: data.data.json_data
-    } satisfies TReportHistoryDetail
-  }
+  /**
+   * Get a History Report Detail. require platformID and reportID.
+   */
+  // public async getReport(platformID: string, reportID: string): Promise<TReportDetail> {
+  //   const { data } = await this.request({
+  //     path: `/export-json/${reportID}`,
+  //     method: 'GET',
+  //     extraParams: {
+  //       pms_platformid: platformID
+  //     }
+  //   })
+  //   return {
+  //     groupID: data.data.pms_groupid,
+  //     groupName: data.data.group_name,
+  //     sampleSize: data.data.sample_size,
+  //     district: data.data.district,
+  //     createTime: data.data.createtime,
+  //     json_data: data.data.json_data
+  //   } satisfies TReportDetail
+  // }
 
-  public async downloadReportHistory(platformID: string, reportID: string, downloadFileType: 'csv' | 'json' | 'excel',
-    savePath: string = '.', fileName?: string) {
+  /**
+   * Download a History Report. require platformID and reportID.
+   * 
+   * if saveAsFile in options is true(default), return the file path.
+   * 
+   * if saveAsFile in options is false, return the file content.
+   * when fileType is `excel`, return `Promise<Uint8Array>`.
+   * otherwise, return `Promise<string>`.
+   */
+  public async getReport(
+    platformID: string, reportID: string, fileType: 'csv' | 'json' | 'excel',
+    options: TDownloadFileOptions = { saveAsFile: true }
+  ): Promise<string | Uint8Array> {
     const res = await this.request({
       path: `/export/${reportID}`,
       method: 'GET',
       extraParams: {
         pms_platformid: platformID,
-        file_type: downloadFileType,
+        file_type: fileType,
       },
-      responseType: downloadFileType === 'excel' ? 'arraybuffer' : undefined
+      responseType: fileType === 'excel' ? 'arraybuffer' : undefined
     })
+
+    let fileContent: string | Uint8Array = ''
+    if (fileType === 'csv') {
+      fileContent = String.fromCharCode(0xFEFF) + res.data;
+    }
+    else if (fileType === 'json') {
+      fileContent = JSON.stringify(res.data, null, 2);
+    }
+    else if (fileType === 'excel') {
+      fileContent = res.data;
+    }
+    if (!options.saveAsFile) return Promise.resolve(fileContent)
+    let { fileName, savePath = '.' } = options;
     if (!fileName)
       fileName = decodeURIComponent(res.headers['content-disposition']?.split('filename=')[1] ??
-        `output.${downloadFileType === 'excel' ? 'xlsx' : downloadFileType}`)
+        `output.${fileType === 'excel' ? 'xlsx' : fileType}`);
 
-    let fileContent: string = ''
-    if (downloadFileType === 'csv') {
-      fileContent = String.fromCharCode(0xFEFF) + res.data
-    }
-    else if (downloadFileType === 'json') {
-      fileContent = JSON.stringify(res.data, null, 2)
-    }
-    else if (downloadFileType === 'excel') {
-      fileContent = res.data
-    }
-
-    if (!fs.existsSync(savePath)) fs.mkdirSync(savePath, { recursive: true })
-    return fsp.writeFile(`${path.join(savePath, fileName)}`, fileContent)
+    if (!fs.existsSync(savePath)) fs.mkdirSync(savePath, { recursive: true });
+    const filePath = `${path.join(savePath, fileName)}`;
+    fs.writeFileSync(filePath, fileContent);
+    return Promise.resolve(path.resolve(filePath));
   }
 }

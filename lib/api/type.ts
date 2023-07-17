@@ -10,13 +10,6 @@ export type TTokenResponse = {
     message: string;
   }
 }
-// export interface TTokenErrorResponse {
-//   result: false;
-//   error: {
-//     code: number;
-//     message: string;
-//   }
-// }
 
 import type { ResponseType } from 'axios';
 export interface BaseRequestParams {
@@ -28,7 +21,7 @@ export interface BaseRequestParams {
   body?: Record<string, any>;
 }
 
-export interface TPlatformListItem {
+export interface TPlatform {
   id: string;
   name: string;
   status: 'enable' | 'disable';
@@ -44,7 +37,7 @@ export interface TPlatformListItem {
   }[]
 }
 
-export interface TGroupListItem {
+export interface TGroup {
   id: string;
   schedule: {
     min: string;
@@ -61,9 +54,9 @@ export interface TGroupListItem {
   exportCount: number;
 }
 
-export interface TReportHistoryListOption {
+export interface TReportListOption {
   size?: number;
-  startPosition?: number;
+  listStartIndex?: number;
   sort?: 'desc' | 'asc';
   filter?: {
     groupID?: string[];
@@ -72,7 +65,7 @@ export interface TReportHistoryListOption {
   }
 }
 
-export interface TReportHistoryListItem {
+export interface TReportListItem {
   id: string;
   createTime: string;
   groupID: string;
@@ -80,35 +73,43 @@ export interface TReportHistoryListItem {
   district: string;
   sampleSize: number;
 }
-interface TReportItemBase {
-  name: string;
-  models: {
-    options: string;
-    price: number;
-    inventory_status: 'normal' | 'delisted'
-  }[];
-  discount: string[];
-  selling_price: number;
-  spread: number;
-  spread_ratio: string;
-  currency: string;
-  e_commerce: string;
-  seller: string;
-  category: string[];
-  ID: string;
-  url: string;
-  inventory_status: 'normal' | 'delisted'
-}
-interface TReportSampleItem extends TReportItemBase {
-  compare_data: TReportItemBase[];
-}
-export interface TReportHistoryDetail {
-  groupID: string;
-  groupName: string;
-  sampleSize: number;
-  district: string;
-  createTime: string;
-  json_data: {
-    [key: string]: TReportSampleItem
-  };
+// interface TReportItemBase {
+//   name: string;
+//   models: {
+//     options: string;
+//     price: number;
+//     inventory_status: 'normal' | 'delisted'
+//   }[];
+//   discount: string[];
+//   selling_price: number;
+//   spread: number;
+//   spread_ratio: string;
+//   currency: string;
+//   e_commerce: string;
+//   seller: string;
+//   category: string[];
+//   ID: string;
+//   url: string;
+//   inventory_status: 'normal' | 'delisted'
+// }
+// interface TReportSampleItem extends TReportItemBase {
+//   compare_data: TReportItemBase[];
+// }
+// export interface TReportDetail {
+//   groupID: string;
+//   groupName: string;
+//   sampleSize: number;
+//   district: string;
+//   createTime: string;
+//   json_data: {
+//     [key: string]: TReportSampleItem
+//   };
+// }
+
+export type TDownloadFileOptions = {
+  saveAsFile: true,
+  savePath?: string,
+  fileName?: string
+} | {
+  saveAsFile: false
 }

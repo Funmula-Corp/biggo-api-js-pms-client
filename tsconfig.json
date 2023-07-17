@@ -23,5 +23,9 @@
     "strictNullChecks": true,
     "noImplicitThis": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "test.ts"
+  ]
 }
