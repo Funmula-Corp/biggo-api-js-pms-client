@@ -70,5 +70,5 @@ api.getReport('<Platform ID>', '<Report ID>', 'json')
 ||required|default value|type|description|
 |:---:|:---:|:---:|:---:|:---:|
 |saveAsFile||`false`|boolean|save report as file|
-|savePath||`.`|string|path to save file|
+|saveDir||`.`|string|Directory to save file|
 |fileName||`<Platform Name>_<Group Name>_<Report Create Time>.<Format>`|string|file name|

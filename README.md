@@ -66,7 +66,7 @@ You can refer to this guide to get the client id and secret
 
 ### Accessing BigGo PMS API
 
-You can access all BigGo PMS API resources using the api object. Simply create a new instance of the desired resource, passing in the client object obtained from auth.getJWTClient(). For example:
+You can access all BigGo PMS API resources using the api object. Simply use the object obtained from `new BiggoPMSAPI()`. For example:
 
 ```js
 // Get list of platforms the user has access.
@@ -75,8 +75,8 @@ const platformList = await api.getPlatformList()
 const groupList = await api.getGroupList('<Platform ID>')
 // Get list of reports in the platform.
 const reportList = await api.getReportList('<Platform ID>')
-// Save report as file or get file content.
-const filePath = await api.getReport('<Platform ID>', '<Report ID>', 'json')
+// Get file content or save report as file.
+const reportJson = await api.getReport('<Platform ID>', '<Report ID>', 'json')
 ```
 
 if you need more information, you can refer to this [document](./lib/api/README.md).

@@ -1,7 +1,7 @@
 import axios from "axios";
 import fs from 'fs'
 import type {
-  BaseRequestParams, TGroup, TPlatform, /*TReportDetail,*/ TReportListItem,
+  BaseRequestParams, TGroup, TPlatform, TReportListItem,
   TReportListOption, TTokenResponse, TDownloadFileOptions
 } from "./type";
 import path from "path";
@@ -48,11 +48,8 @@ export class BiggoPMSAPI {
     this.#accessToken = '';
     this.#tokenType = 'Bearer';
     this.#expiresAt = 0;
-    let basicAuthHeader: string = '';
-    if (typeof Buffer !== 'undefined')
-      basicAuthHeader = `Basic ${Buffer.from(`${this.#clientID}:${this.#clientSecret}`).toString('base64')}`;
-    else
-      basicAuthHeader = `Basic ${btoa(`${this.#clientID}:${this.#clientSecret}`)}`;
+    const basicAuthHeader = `Basic ${Buffer.from(`${this.#clientID}:${this.#clientSecret}`).toString('base64')}`;
+
     try {
       const response = await axios.post<TTokenResponse>('https://api.biggo.com/auth/v1/token', {
         grant_type: 'client_credentials'
@@ -77,8 +74,10 @@ export class BiggoPMSAPI {
       this.#expiresAt = Date.now() / 1000 + expires_in - 30;
     }
     catch (err) {
-      if (err instanceof Error)
-        throw new BigGoAuthError(`${err.message}`, err.cause);
+      if (err instanceof BigGoAuthError)
+        throw err;
+      else if (err instanceof Error)
+        throw new BigGoAuthError(`${err.message}`);
       else
         throw new BigGoAuthError(`${err}`);
     }
@@ -109,8 +108,10 @@ export class BiggoPMSAPI {
         return res;
       })
       .catch(err => {
-        if (err instanceof Error)
-          throw new BigGoError(`${err.message}`, err.cause);
+        if (err instanceof BigGoError)
+          throw err;
+        else if (err instanceof Error)
+          throw new BigGoError(`${err.message}`);
         else
           throw new BigGoError(`${err}`);
       })
@@ -171,8 +172,12 @@ export class BiggoPMSAPI {
         in_form: options?.startIndex ?? 0,
         in_opt: (options?.groupID || options?.startDate || options?.endDate) ? {
           pms_groupid: options.groupID?.join(','),
-          start: options.startDate ? `${options.startDate.getUTCFullYear()}-${options.startDate.getUTCMonth() + 1}-${options.startDate.getUTCDate()}` : undefined,
-          end: options.endDate ? `${options.endDate.getUTCFullYear()}-${options.endDate.getUTCMonth() + 1}-${options.endDate.getUTCDate()}` : undefined,
+          start: options.startDate ?
+            `${options.startDate.getUTCFullYear()}-${options.startDate.getUTCMonth() + 1}-${options.startDate.getUTCDate()}` :
+            undefined,
+          end: options.endDate ?
+            `${options.endDate.getUTCFullYear()}-${options.endDate.getUTCMonth() + 1}-${options.endDate.getUTCDate()}` :
+            undefined,
         } : undefined,
       }
     })
@@ -191,14 +196,14 @@ export class BiggoPMSAPI {
   /**
    * Download a History Report. require platformID and reportID.
    * 
-   * if saveAsFile in options is true(default), return the file path.
+   * if saveAsFile in options is true, return the file path.
    * 
-   * if saveAsFile in options is false, return the file content.
+   * if saveAsFile in options is false(default), return the file content.
    * when fileType is `excel`, return `Promise<Uint8Array>`.
    * otherwise, return `Promise<string>`.
    */
-  public async getReport(
-    platformID: string, reportID: string, fileType: 'csv' | 'json' | 'excel',
+  public async getReport<T = 'csv' | 'json' | 'excel'>(
+    platformID: string, reportID: string, fileType: T,
     options: TDownloadFileOptions = { saveAsFile: false }
   ): Promise<string | Uint8Array> {
     const res = await this.request({
@@ -222,13 +227,13 @@ export class BiggoPMSAPI {
       fileContent = res.data;
     }
     if (!options.saveAsFile) return Promise.resolve(fileContent)
-    let { fileName, savePath = '.' } = options;
+    let { fileName, saveDir = '.' } = options;
     if (!fileName)
       fileName = decodeURIComponent(res.headers['content-disposition']?.split('filename=')[1] ??
         `output.${fileType === 'excel' ? 'xlsx' : fileType}`);
 
-    if (!fs.existsSync(savePath)) fs.mkdirSync(savePath, { recursive: true });
-    const filePath = `${path.join(savePath, fileName)}`;
+    if (!fs.existsSync(saveDir)) fs.mkdirSync(saveDir, { recursive: true });
+    const filePath = `${path.join(saveDir, fileName)}`;
     fs.writeFileSync(filePath, fileContent);
     return Promise.resolve(path.resolve(filePath));
   }

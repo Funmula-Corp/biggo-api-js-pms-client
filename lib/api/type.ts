@@ -71,42 +71,10 @@ export interface TReportListItem {
   district: string;
   sampleSize: number;
 }
-// interface TReportItemBase {
-//   name: string;
-//   models: {
-//     options: string;
-//     price: number;
-//     inventory_status: 'normal' | 'delisted'
-//   }[];
-//   discount: string[];
-//   selling_price: number;
-//   spread: number;
-//   spread_ratio: string;
-//   currency: string;
-//   e_commerce: string;
-//   seller: string;
-//   category: string[];
-//   ID: string;
-//   url: string;
-//   inventory_status: 'normal' | 'delisted'
-// }
-// interface TReportSampleItem extends TReportItemBase {
-//   compare_data: TReportItemBase[];
-// }
-// export interface TReportDetail {
-//   groupID: string;
-//   groupName: string;
-//   sampleSize: number;
-//   district: string;
-//   createTime: string;
-//   json_data: {
-//     [key: string]: TReportSampleItem
-//   };
-// }
 
 export type TDownloadFileOptions = {
   saveAsFile: true,
-  savePath?: string,
+  saveDir?: string,
   fileName?: string
 } | {
   saveAsFile: false
