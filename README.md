@@ -1,7 +1,7 @@
-# BigGo PMS API Javascript Client
+# BigGo API PMS Javascript Client
 
 
-BigGo PMS API Javascript Client is a API written in Javascript. 
+BigGo API PMS Javascript Client is a API written in Javascript. 
 
 short future:
 
@@ -9,7 +9,7 @@ short future:
   - [Installation](#installation)
   - [Usage](#usage)
   - [Initializing](#initializing)
-  - [Accessing BigGo PMS API](#accessing-biggo-pms-api)
+  - [Accessing BigGo API PMS](#accessing-biggo-api-pms)
 - [Typescript](#typescript)
 - [License](#license)
 
@@ -20,19 +20,19 @@ short future:
 Using npm
 
 ```shell
-npm i ???? --save
+npm i biggo-api-pms --save
 ```
 
 Using yarn
 
 ```shell
-yarn add ????
+yarn add biggo-api-pms
 ```
 
 Using pnpm
 
 ```shell
-pnpm add ????
+pnpm add biggo-api-pms
 ```
 
 ### Usage
@@ -40,13 +40,13 @@ pnpm add ????
 Using ESM:
 
 ```js
-import { BiggoPMSAPI } from "????"
+import { BiggoAPIPMS } from "biggo-api-pms"
 ```
 
 Using CJS:
 
 ```js
-const { BiggoPMSAPI } = require("????")
+const { BiggoAPIPMS } = require("biggo-api-pms")
 ```
 
 ### Initializing
@@ -54,7 +54,7 @@ const { BiggoPMSAPI } = require("????")
 To get started, first obtain a client id and secret from BigGo API. Then, use the following code to obtain an API object:
 
 ```js
-const api = new BiggoPMSAPI({ 
+const api = new BiggoAPIPMS({ 
   clientID: '<Your client ID>',
   clientSecret: '<Your client secret>' 
 })
@@ -64,9 +64,9 @@ You can refer to this guide to get the client id and secret
 
 [Funmula-Corp/guide](https://github.com/Funmula-Corp/guide)
 
-### Accessing BigGo PMS API
+### Accessing BigGo API PMS
 
-You can access all BigGo PMS API resources using the api object. Simply use the object obtained from `new BiggoPMSAPI()`. For example:
+You can access all BigGo API PMS resources using the api object. Simply use the object obtained from `new BiggoAPIPMS()`. For example:
 
 ```js
 // Get list of platforms the user has access.

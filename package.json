@@ -1,5 +1,5 @@
 {
-  "name": "biggo-api-js-pms-client",
+  "name": "biggo-api-pms",
   "version": "0.1.0",
   "description": "",
   "main": "./lib/index.js",

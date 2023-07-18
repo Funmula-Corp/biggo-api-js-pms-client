@@ -6,7 +6,7 @@ import type {
 } from "./type";
 import path from "path";
 import { BigGoAuthError, BigGoError } from "../error";
-export class BiggoPMSAPI {
+export class BiggoAPIPMS {
   #clientID: string;
   #clientSecret: string;
   #accessToken: string = '';
