@@ -202,8 +202,7 @@ export class BiggoPMSAPI {
    * when fileType is `excel`, return `Promise<Uint8Array>`.
    * otherwise, return `Promise<string>`.
    */
-  public async getReport<T = 'csv' | 'json' | 'excel'>(
-    platformID: string, reportID: string, fileType: T,
+  public async getReport(platformID: string, reportID: string, fileType: 'csv' | 'json' | 'excel',
     options: TDownloadFileOptions = { saveAsFile: false }
   ): Promise<string | Uint8Array> {
     const res = await this.request({

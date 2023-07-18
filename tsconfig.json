@@ -4,9 +4,7 @@
     "composite": true,
     "target": "ESNext",
     "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
+      "ESNext"
     ],
     "module": "CommonJS", /* Specify what module code is generated. */
     "moduleResolution": "NodeNext",
