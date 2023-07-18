@@ -56,13 +56,11 @@ export interface TGroup {
 
 export interface TReportListOption {
   size?: number;
-  listStartIndex?: number;
+  startIndex?: number;
   sort?: 'desc' | 'asc';
-  filter?: {
-    groupID?: string[];
-    startDate?: Date;
-    endDate?: Date;
-  }
+  groupID?: string[];
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export interface TReportListItem {

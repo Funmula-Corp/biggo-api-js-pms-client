@@ -168,11 +168,11 @@ export class BiggoPMSAPI {
         pms_platformid: platformID,
         size: options?.size ?? 5000,
         in_sort: options?.sort ?? 'desc',
-        in_form: options?.listStartIndex ?? 0,
-        in_opt: options?.filter ? {
-          pms_groupid: options.filter.groupID?.join(','),
-          start: options.filter.startDate ? `${options.filter.startDate.getUTCFullYear()}-${options.filter.startDate.getUTCMonth() + 1}-${options.filter.startDate.getUTCDate()}` : undefined,
-          end: options.filter.endDate ? `${options.filter.endDate.getUTCFullYear()}-${options.filter.endDate.getUTCMonth() + 1}-${options.filter.endDate.getUTCDate()}` : undefined,
+        in_form: options?.startIndex ?? 0,
+        in_opt: (options?.groupID || options?.startDate || options?.endDate) ? {
+          pms_groupid: options.groupID?.join(','),
+          start: options.startDate ? `${options.startDate.getUTCFullYear()}-${options.startDate.getUTCMonth() + 1}-${options.startDate.getUTCDate()}` : undefined,
+          end: options.endDate ? `${options.endDate.getUTCFullYear()}-${options.endDate.getUTCMonth() + 1}-${options.endDate.getUTCDate()}` : undefined,
         } : undefined,
       }
     })
@@ -189,27 +189,6 @@ export class BiggoPMSAPI {
   }
 
   /**
-   * Get a History Report Detail. require platformID and reportID.
-   */
-  // public async getReport(platformID: string, reportID: string): Promise<TReportDetail> {
-  //   const { data } = await this.request({
-  //     path: `/export-json/${reportID}`,
-  //     method: 'GET',
-  //     extraParams: {
-  //       pms_platformid: platformID
-  //     }
-  //   })
-  //   return {
-  //     groupID: data.data.pms_groupid,
-  //     groupName: data.data.group_name,
-  //     sampleSize: data.data.sample_size,
-  //     district: data.data.district,
-  //     createTime: data.data.createtime,
-  //     json_data: data.data.json_data
-  //   } satisfies TReportDetail
-  // }
-
-  /**
    * Download a History Report. require platformID and reportID.
    * 
    * if saveAsFile in options is true(default), return the file path.
@@ -220,7 +199,7 @@ export class BiggoPMSAPI {
    */
   public async getReport(
     platformID: string, reportID: string, fileType: 'csv' | 'json' | 'excel',
-    options: TDownloadFileOptions = { saveAsFile: true }
+    options: TDownloadFileOptions = { saveAsFile: false }
   ): Promise<string | Uint8Array> {
     const res = await this.request({
       path: `/export/${reportID}`,
