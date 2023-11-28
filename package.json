@@ -39,7 +39,7 @@
   "homepage": "https://github.com/Funmula-Corp/biggo-api-js-pms-client#readme",
   "dependencies": {
     "@types/node": "^20.4.2",
-    "axios": "^1.4.0"
+    "axios": "^1.6.2"
   },
   "devDependencies": {
     "ts-node": "^10.9.1"
