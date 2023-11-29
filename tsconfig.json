@@ -6,7 +6,7 @@
     "lib": [
       "ESNext"
     ],
-    "module": "CommonJS", /* Specify what module code is generated. */
+    "module": "NodeNext", /* Specify what module code is generated. */
     "moduleResolution": "NodeNext",
     "allowJs": true,
     "declaration": true,
