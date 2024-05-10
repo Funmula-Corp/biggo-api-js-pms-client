@@ -1,6 +1,6 @@
 {
   "name": "biggo-api-pms",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -38,10 +38,10 @@
   },
   "homepage": "https://github.com/Funmula-Corp/biggo-api-js-pms-client#readme",
   "dependencies": {
-    "@types/node": "^20.4.2",
-    "axios": "^1.6.2"
+    "@types/node": "^20.11.26",
+    "axios": "^1.6.7"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.2"
   }
 }

@@ -33,7 +33,7 @@ export interface TPlatform {
   emailList: {
     name: string;
     email: string;
-    group_list: ['all'] | string[];
+    group_list?: ['all'] | string[];
   }[]
 }
 
@@ -72,10 +72,14 @@ export interface TReportListItem {
   sampleSize: number;
 }
 
-export type TDownloadFileOptions = {
+export type TDownloadFileType = 'csv' | 'json' | 'excel'
+
+export type TDownloadAsFile = {
   saveAsFile: true,
   saveDir?: string,
   fileName?: string
-} | {
+}
+export type TDownloadAsString = {
   saveAsFile: false
 }
+export type TDownloadFileOptions = TDownloadAsFile | TDownloadAsString;

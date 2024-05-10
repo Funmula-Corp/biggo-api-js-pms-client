@@ -2,7 +2,7 @@ import axios from "axios";
 import fs from 'fs'
 import type {
   BaseRequestParams, TGroup, TPlatform, TReportListItem,
-  TReportListOption, TTokenResponse, TDownloadFileOptions
+  TReportListOption, TTokenResponse, TDownloadFileOptions, TDownloadAsString, TDownloadFileType
 } from "./type";
 import path from "path";
 import { BigGoAuthError, BigGoError } from "../error";
@@ -195,14 +195,29 @@ export class BiggoAPIPMS {
 
   /**
    * Download a History Report. require platformID and reportID.
-   * 
+   *
    * if saveAsFile in options is true, return the file path.
-   * 
+   *
    * if saveAsFile in options is false(default), return the file content.
    * when fileType is `excel`, return `Promise<Uint8Array>`.
    * otherwise, return `Promise<string>`.
    */
-  public async getReport(platformID: string, reportID: string, fileType: 'csv' | 'json' | 'excel',
+  public async getReport<FileType extends TDownloadFileType>(
+    platformID: string,
+    reportID: string,
+    fileType: 'excel',
+    options?: TDownloadAsString
+  ): Promise<Uint8Array>;
+  public async getReport<FileType extends TDownloadFileType>(
+    platformID: string,
+    reportID: string,
+    fileType: FileType,
+    options?: TDownloadFileOptions
+  ): Promise<string>;
+  public async getReport<FileType extends TDownloadFileType>(
+    platformID: string,
+    reportID: string,
+    fileType: FileType,
     options: TDownloadFileOptions = { saveAsFile: false }
   ): Promise<string | Uint8Array> {
     const res = await this.request({
