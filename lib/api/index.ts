@@ -2,7 +2,8 @@ import axios from "axios";
 import fs from 'fs'
 import type {
   BaseRequestParams, TGroup, TPlatform, TReportListItem,
-  TReportListOption, TTokenResponse, TDownloadFileOptions, TDownloadAsString, TDownloadFileType
+  TReportListOption, TTokenResponse, TDownloadFileOptions, TDownloadAsContent, TDownloadFileType,
+  TDownloadAsFile,
 } from "./type";
 import path from "path";
 import { BigGoAuthError, BigGoError } from "../error";
@@ -206,7 +207,7 @@ export class BiggoAPIPMS {
     platformID: string,
     reportID: string,
     fileType: 'excel',
-    options?: TDownloadAsString
+    options?: TDownloadAsContent
   ): Promise<Uint8Array>;
   public async getReport<FileType extends TDownloadFileType>(
     platformID: string,

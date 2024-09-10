@@ -79,7 +79,7 @@ export type TDownloadAsFile = {
   saveDir?: string,
   fileName?: string
 }
-export type TDownloadAsString = {
+export type TDownloadAsContent = {
   saveAsFile: false
 }
-export type TDownloadFileOptions = TDownloadAsFile | TDownloadAsString;
+export type TDownloadFileOptions = TDownloadAsFile | TDownloadAsContent;
