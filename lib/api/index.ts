@@ -60,10 +60,10 @@ export class BiggoAPIPMS {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }).catch(err => {
-        if (typeof err.response.data === 'object' && 'error' in err.response.data) {
+        if (err.response?.data && typeof err.response.data === 'object' && 'error' in err.response.data) {
           return err.response
         }
-        throw new BigGoAuthError(`${err.message}`);
+        throw new BigGoAuthError(`${err.response?.data?.error?.message ?? err.message}`);
       })
 
       if ('error' in response.data) {
@@ -111,10 +111,12 @@ export class BiggoAPIPMS {
       .catch(err => {
         if (err instanceof BigGoError)
           throw err;
-        else if (err instanceof Error)
+        const data = err?.response?.data;
+        if (data && typeof data === 'object' && (data.error || data.message))
+          throw new BigGoError(`${data.error || data.message}`, data.error_code);
+        if (err instanceof Error)
           throw new BigGoError(`${err.message}`);
-        else
-          throw new BigGoError(`${err}`);
+        throw new BigGoError(`${err}`);
       })
   }
   /**
@@ -170,7 +172,7 @@ export class BiggoAPIPMS {
         pms_platformid: platformID,
         size: options?.size ?? 5000,
         in_sort: options?.sort ?? 'desc',
-        in_form: options?.startIndex ?? 0,
+        in_from: options?.startIndex ?? 0,
         in_opt: (options?.groupID || options?.startDate || options?.endDate) ? {
           pms_groupid: options.groupID?.join(','),
           start: options.startDate ?
@@ -228,7 +230,7 @@ export class BiggoAPIPMS {
         pms_platformid: platformID,
         file_type: fileType,
       },
-      responseType: fileType === 'excel' ? 'arraybuffer' : undefined
+      responseType: fileType === 'excel' ? 'arraybuffer' : fileType === 'csv' ? 'text' : undefined
     })
 
     let fileContent: string | Uint8Array = ''

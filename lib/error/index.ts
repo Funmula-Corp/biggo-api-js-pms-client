@@ -1,15 +1,19 @@
 export class BigGoError extends Error {
-  constructor(message: string, cause?: Error['cause']) {
-    super(message, cause ? { cause } : undefined);
+  code?: number;
+  constructor(message: string, code?: number) {
+    super(message);
     this.name = this.constructor.name;
+    this.code = code;
   }
 }
 
 export class BigGoAuthError extends Error {
-  constructor(message: string, cause?: Error['cause']) {
+  code?: number;
+  constructor(message: string, code?: number) {
     message = message.replace('( app_id )', '( clientID )');
     message = message.replace('( app_key )', '( clientSecret )');
-    super(message, cause ? { cause } : undefined);
+    super(message);
     this.name = this.constructor.name;
+    this.code = code;
   }
 }
